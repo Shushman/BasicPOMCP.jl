@@ -125,10 +125,11 @@ struct POMCPTree{A,O}
     n::Vector{Int}                       # number of visits for an action node
     v::Vector{Float64}                   # value estimate for an action node
     a_labels::Vector{A}                  # actual action corresponding to this action node
+
 end
 
-function POMCPTree(pomdp::POMDP, sz::Int=1000)
-    acts = collect(actions(pomdp))
+function POMCPTree(pomdp::POMDP, b, sz::Int=1000)
+    acts = collect(actions(pomdp, b))
     A = actiontype(pomdp)
     O = obstype(pomdp)
     sz = min(100_000, sz)
@@ -150,7 +151,7 @@ function insert_obs_node!(t::POMCPTree, pomdp::POMDP, ha::Int, o)
     push!(t.o_labels, o)
     hao = length(t.total_n)
     t.o_lookup[(ha, o)] = hao
-    for a in actions(pomdp)
+    for a in actions(pomdp, o)
         n = insert_action_node!(t, hao, a)
         push!(t.children[hao], n)
     end
