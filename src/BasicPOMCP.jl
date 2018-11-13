@@ -49,6 +49,7 @@ export
     FORollout,
     RolloutEstimator,
     FOValue,
+    extract_belief,
 
     D3Tree,
     node_tag,
@@ -113,7 +114,7 @@ Partially Observable Monte Carlo Planning Solver.
     estimate_value::Any     = RolloutEstimator(RandomSolver(rng))
 end
 
-struct POMCPTree{B,A,O}
+struct POMCPTree{A,O}
     # for each observation-terminated history
     total_n::Vector{Int}                 # total number of visits for an observation node
     children::Vector{Vector{Int}}        # indices of each of the children
@@ -125,9 +126,6 @@ struct POMCPTree{B,A,O}
     n::Vector{Int}                       # number of visits for an action node
     v::Vector{Float64}                   # value estimate for an action node
     a_labels::Vector{A}                  # actual action corresponding to this action node
-
-    # Adding root node for rollouts
-    root_belief::B
 end
 
 function POMCPTree(pomdp::POMDP, b, sz::Int=1000)
@@ -143,8 +141,7 @@ function POMCPTree(pomdp::POMDP, b, sz::Int=1000)
 
                           sizehint!(zeros(Int, length(acts)), sz),
                           sizehint!(zeros(Float64, length(acts)), sz),
-                          sizehint!(acts, sz),
-                          b
+                          sizehint!(acts, sz)
                          )
 end    
 
@@ -170,9 +167,10 @@ end
 
 abstract type BeliefNode <: AbstractStateNode end
 
-struct POMCPObsNode{B,A,O} <: BeliefNode
-    tree::POMCPTree{B,A,O}
+struct POMCPObsNode{A,O,B} <: BeliefNode
+    tree::POMCPTree{A,O}
     node::Int
+    b::B
 end
 
 mutable struct POMCPPlanner{P, SE, RNG} <: Policy

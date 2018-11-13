@@ -29,7 +29,7 @@ function search(p::POMCPPlanner, b, t::POMCPTree, info::Dict)
         end
         s = rand(p.rng, b)
         if !POMDPs.isterminal(p.problem, s)
-            simulate(p, s, POMCPObsNode(t, 1), p.solver.max_depth)
+            simulate(p, s, POMCPObsNode(t, 1, b), p.solver.max_depth)
             all_terminal = false
         end
     end
@@ -95,11 +95,11 @@ function simulate(p::POMCPPlanner, s, hnode::POMCPObsNode, steps::Int)
         v = estimate_value(p.solved_estimator,
                            p.problem,
                            sp,
-                           POMCPObsNode(t, hao),
+                           POMCPObsNode(t, hao, hnode.b),
                            steps-1)
         R = r + discount(p.problem)*v
     else
-        R = r + discount(p.problem)*simulate(p, sp, POMCPObsNode(t, hao), steps-1)
+        R = r + discount(p.problem)*simulate(p, sp, POMCPObsNode(t, hao, hnode.b), steps-1)
     end
 
     t.total_n[h] += 1
